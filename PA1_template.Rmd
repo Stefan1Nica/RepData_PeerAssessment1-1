@@ -92,3 +92,28 @@ median(newday)
 TO be observed: The median changed to 10766 but that is easy to understand because completing the missing values with means for that specific interval conducts the median to be closer to the mean. Another consequence would be the increase in frequency for the values in the middle of the interval(center region) which are closer to the mean.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+A first step to take would be too create another column in the dataset which to say if the day is weeekday or weekend. We can do this by creating a function which takes as input the day and this classification or we can do it manually.
+
+```{r}
+library(dplyr)
+datasetfilled <- datasetfilled %>%
+        mutate(wt= ifelse(weekdays(datasetfilled$date)=="Saturday" | weekdays(datasetfilled$date)=="Sunday", "Weekend", "Weekday"))
+
+head(datasetfilled)
+```
+
+Now we have to compare the activity patterns so we will creata a panel in which to figure the patterns for weekend and weekdays activity
+
+```{r}
+library(ggplot2)
+int<- datasetfilled%>%
+        group_by(interval, wt)%>%
+        summarise(avg_steps2 = mean(steps, na.rm=TRUE))
+head(int)
+plot<- ggplot(int, aes(x =interval , y=avg_steps2, color=wt)) +
+       geom_line() +
+       labs(title = "Average Daily Steps by Weektype", x = "Interval", y = "Number of Steps") +
+       facet_wrap(~wt, ncol = 1, nrow=2)
+print(plot)
+```

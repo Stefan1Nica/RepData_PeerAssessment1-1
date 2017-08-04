@@ -153,3 +153,78 @@ median(newday)
 TO be observed: The median changed to 10766 but that is easy to understand because completing the missing values with means for that specific interval conducts the median to be closer to the mean. Another consequence would be the increase in frequency for the values in the middle of the interval(center region) which are closer to the mean.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+A first step to take would be too create another column in the dataset which to say if the day is weeekday or weekend. We can do this by creating a function which takes as input the day and this classification or we can do it manually.
+
+
+```r
+library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
+datasetfilled <- datasetfilled %>%
+        mutate(wt= ifelse(weekdays(datasetfilled$date)=="Saturday" | weekdays(datasetfilled$date)=="Sunday", "Weekend", "Weekday"))
+
+head(datasetfilled)
+```
+
+```
+##       steps       date interval      wt
+## 1 1.7169811 2012-10-01        0 Weekday
+## 2 0.3396226 2012-10-01        5 Weekday
+## 3 0.1320755 2012-10-01       10 Weekday
+## 4 0.1509434 2012-10-01       15 Weekday
+## 5 0.0754717 2012-10-01       20 Weekday
+## 6 2.0943396 2012-10-01       25 Weekday
+```
+
+Now we have to compare the activity patterns so we will creata a panel in which to figure the patterns for weekend and weekdays activity
+
+
+```r
+library(ggplot2)
+int<- datasetfilled%>%
+        group_by(interval, wt)%>%
+        summarise(avg_steps2 = mean(steps, na.rm=TRUE))
+head(int)
+```
+
+```
+## # A tibble: 6 x 3
+## # Groups:   interval [6]
+##   interval      wt avg_steps2
+##      <int>   <chr>      <dbl>
+## 1        0 Weekday  1.7169811
+## 2        5 Weekday  0.3396226
+## 3       10 Weekday  0.1320755
+## 4       15 Weekday  0.1509434
+## 5       20 Weekday  0.0754717
+## 6       25 Weekday  2.0943396
+```
+
+```r
+plot<- ggplot(int, aes(x =interval , y=avg_steps2, color=wt)) +
+       geom_line() +
+       labs(title = "Average Daily Steps by Weektype", x = "Interval", y = "Number of Steps") +
+       facet_wrap(~wt, ncol = 1, nrow=2)
+print(plot)
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png)<!-- -->

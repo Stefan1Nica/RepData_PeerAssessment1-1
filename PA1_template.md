@@ -31,7 +31,7 @@ max(dataset$interval)
 Proocessing the data: changing data formats into usable formats and cutting out missing values
 
 ```r
-dataset$date <- as.Date(dataset$date)
+dataset$date <- as.Date(strptime(dataset$date, format = "%Y-%m-%d"))
 dataset$steps <- as.integer(dataset$steps)
 dataset$interval <- as.integer(dataset$interval)
 datasetclean <- subset(dataset, !is.na(dataset$steps))
@@ -158,72 +158,19 @@ A first step to take would be too create another column in the dataset which to 
 
 
 ```r
-library(dplyr)
+datasetfilled$datetype <- ifelse(weekdays(as.Date(datasetfilled$date, tz = "UTC")) == "sâmbătă" | weekdays(as.Date(datasetfilled$date)) == "duminică", "weekend","weekday")
 ```
 
-```
-## 
-## Attaching package: 'dplyr'
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
-datasetfilled <- datasetfilled %>%
-        mutate(wt= ifelse(weekdays(datasetfilled$date)=="Saturday" | weekdays(datasetfilled$date)=="Sunday", "Weekend", "Weekday"))
-
-head(datasetfilled)
-```
-
-```
-##       steps       date interval      wt
-## 1 1.7169811 2012-10-01        0 Weekday
-## 2 0.3396226 2012-10-01        5 Weekday
-## 3 0.1320755 2012-10-01       10 Weekday
-## 4 0.1509434 2012-10-01       15 Weekday
-## 5 0.0754717 2012-10-01       20 Weekday
-## 6 2.0943396 2012-10-01       25 Weekday
-```
-
-Now we have to compare the activity patterns so we will creata a panel in which to figure the patterns for weekend and weekdays activity
+Now we have to compare the activity patterns so we will create a panel in which to figure the patterns for weekend and weekdays activity
 
 
 ```r
 library(ggplot2)
-int<- datasetfilled%>%
-        group_by(interval, wt)%>%
-        summarise(avg_steps2 = mean(steps, na.rm=TRUE))
-head(int)
-```
-
-```
-## # A tibble: 6 x 3
-## # Groups:   interval [6]
-##   interval      wt avg_steps2
-##      <int>   <chr>      <dbl>
-## 1        0 Weekday  1.7169811
-## 2        5 Weekday  0.3396226
-## 3       10 Weekday  0.1320755
-## 4       15 Weekday  0.1509434
-## 5       20 Weekday  0.0754717
-## 6       25 Weekday  2.0943396
-```
-
-```r
-plot<- ggplot(int, aes(x =interval , y=avg_steps2, color=wt)) +
+activitybydate <- aggregate(steps ~ interval + datetype, datasetfilled, mean, na.rm = TRUE)
+plot<- ggplot(activitybydate, aes(x =interval , y=steps, color=datetype)) +
        geom_line() +
        labs(title = "Average Daily Steps by Weektype", x = "Interval", y = "Number of Steps") +
-       facet_wrap(~wt, ncol = 1, nrow=2)
+       facet_wrap(~datetype, ncol = 1, nrow=2)
 print(plot)
 ```
 
